@@ -7,15 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/cors"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/openmultiplayer/web/server/src/api/authentication"
-	"github.com/openmultiplayer/web/server/src/api/legacy"
-	"github.com/openmultiplayer/web/server/src/api/servers"
+	"github.com/openmultiplayer/web/server/src/api"
 	"github.com/openmultiplayer/web/server/src/auth"
 	"github.com/openmultiplayer/web/server/src/db"
 	"github.com/openmultiplayer/web/server/src/mailer"
@@ -26,7 +22,6 @@ import (
 	"github.com/openmultiplayer/web/server/src/scraper"
 	"github.com/openmultiplayer/web/server/src/seed"
 	"github.com/openmultiplayer/web/server/src/serverdb"
-	"github.com/openmultiplayer/web/server/src/web"
 	"github.com/openmultiplayer/web/server/src/worker"
 )
 
@@ -81,42 +76,11 @@ func Initialise(root context.Context) (app *App, err error) {
 	storage := serverdb.NewPrisma(app.prisma)
 	sampqueryer := &queryer.SAMPQueryer{}
 
-	router := chi.NewRouter()
-	router.Use(
-		web.WithLogger,
-		web.WithContentType,
-		auther.WithAuthentication,
-		cors.Handler(cors.Options{
-			// AllowedOrigins: []string{"https://www.open.mp"}, // TODO
-			AllowedOrigins:   []string{"*"},
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-			ExposedHeaders:   []string{"Link"},
-			AllowCredentials: false,
-			MaxAge:           300,
-		}),
-	)
-
-	router.Mount("/", legacy.New(app.ctx, storage, sampqueryer))
-	router.Mount("/server", servers.New(app.ctx, storage, sampqueryer))
-	router.Mount("/auth", authentication.New(
-		auther,
-		auth.NewGitHubProvider(app.prisma, app.config.GithubClientID, app.config.GithubClientSecret),
-		auth.NewDiscordProvider(app.prisma, app.config.DiscordClientID, app.config.DiscordClientSecret),
-	))
-
-	zap.L().Debug("constructed router", zap.Any("router", router))
-
-	router.HandleFunc(
-		"/{rest:[a-zA-Z0-9=\\-\\/]+}",
-		func(w http.ResponseWriter, r *http.Request) {
-			if _, err := w.Write([]byte("no module found for that route")); err != nil {
-				zap.L().Warn("failed to write error", zap.Error(err))
-			}
-		})
+	oaGitHub := auth.NewGitHubProvider(app.prisma, app.config.GithubClientID, app.config.GithubClientSecret)
+	oaDiscord := auth.NewDiscordProvider(app.prisma, app.config.DiscordClientID, app.config.DiscordClientSecret)
 
 	app.server = http.Server{
-		Handler: router,
+		Handler: api.New(app.ctx, auther, storage, sampqueryer, oaGitHub, oaDiscord),
 		Addr:    "0.0.0.0:80",
 		BaseContext: func(net.Listener) context.Context {
 			return app.ctx
