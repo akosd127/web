@@ -9,15 +9,15 @@ require (
 	github.com/cskr/pubsub v1.0.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-chi/cors v1.1.1
+	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/go-github/v28 v28.1.1
 	github.com/gorilla/schema v1.2.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/markbates/goth v1.66.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prisma/prisma-client-go v0.0.10-0.20201008164449-6ec144dd5855
+	github.com/prisma/prisma-client-go v0.1.0
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.7.1+incompatible
 	github.com/streadway/amqp v1.0.0
@@ -25,5 +25,8 @@ require (
 	github.com/thanhpk/randstr v1.0.4
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/net v0.0.0-20200930145003-4acb6c075d10 // indirect
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
+	golang.org/x/sys v0.0.0-20200905004654-be1d3432aa8f // indirect
+	golang.org/x/tools v0.0.0-20200929161345-d7fc70abf50f // indirect
 )
